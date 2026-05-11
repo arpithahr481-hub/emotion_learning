@@ -3,97 +3,444 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Learning Dashboard - EduSense</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <title>EduSense - Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #4f46e5; --accent: #06b6d4; --success: #10b981;
+      --warning: #f59e0b; --danger: #ef4444; --bg: #0f172a;
+      --card: #1e293b; --border: #334155; --text: #e2e8f0; --muted: #94a3b8;
+    }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* NAVBAR */
+    nav { background: var(--card); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .nav-brand { font-size: 20px; font-weight: 700; color: var(--primary); }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .nav-right span { color: var(--muted); font-size: 14px; }
+    .btn-logout { padding: 7px 14px; background: transparent; color: var(--danger); border: 1px solid var(--danger); border-radius: 8px; cursor: pointer; font-size: 13px; }
+
+    /* LAYOUT */
+    .layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 53px); }
+
+    /* SIDEBAR */
+    aside { background: #162032; border-right: 1px solid var(--border); padding: 20px 14px; }
+    aside h3 { font-size: 11px; text-transform: uppercase; color: var(--muted); letter-spacing: 1px; margin-bottom: 10px; }
+    .subj-list { list-style: none; margin-bottom: 24px; }
+    .subj-list li { padding: 9px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; color: var(--muted); margin-bottom: 3px; transition: all 0.15s; }
+    .subj-list li:hover { background: var(--card); color: var(--text); }
+    .subj-list li.active { background: rgba(79,70,229,0.2); color: var(--primary); font-weight: 600; }
+    .emo-box { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+    .emo-box h4 { font-size: 11px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+    .emo-badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 6px; background: rgba(148,163,184,0.2); color: var(--muted); }
+    .emo-badge.happy    { background: rgba(16,185,129,0.2);  color: var(--success); }
+    .emo-badge.confused { background: rgba(245,158,11,0.2);  color: var(--warning); }
+    .emo-badge.bored    { background: rgba(239,68,68,0.2);   color: var(--danger);  }
+    .emo-badge.focused  { background: rgba(79,70,229,0.2);   color: var(--primary); }
+    .emo-conf { font-size: 12px; color: var(--muted); }
+
+    /* MAIN */
+    main { padding: 20px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
+
+    /* WEBCAM PANEL */
+    .cam-panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; display: flex; align-items: flex-start; gap: 20px; flex-wrap: wrap; }
+    .cam-wrap { position: relative; width: 260px; height: 195px; background: #000; border-radius: 10px; overflow: hidden; flex-shrink: 0; }
+    #webcam { width: 100%; height: 100%; object-fit: cover; display: none; }
+    .cam-placeholder { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--muted); font-size: 13px; gap: 8px; }
+    .cam-placeholder span { font-size: 36px; }
+    .cam-right { flex: 1; min-width: 200px; }
+    .cam-right h3 { font-size: 15px; margin-bottom: 12px; }
+    .cam-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    .btn { padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: opacity 0.15s; }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-danger  { background: var(--danger);  color: #fff; }
+    .btn-accent  { background: var(--accent);  color: #fff; }
+    .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border) !important; border: none; }
+    .cam-status { font-size: 13px; color: var(--muted); background: var(--bg); padding: 8px 12px; border-radius: 6px; }
+    .cam-note { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+
+    /* CONTENT PANEL */
+    .content-panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 22px; }
+    .content-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .content-header h2 { font-size: 20px; }
+    .mode-badge { padding: 5px 14px; background: rgba(6,182,212,0.15); color: var(--accent); border-radius: 20px; font-size: 13px; font-weight: 600; }
+    .topic-card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+    .topic-card h3 { color: var(--primary); margin-bottom: 12px; font-size: 17px; }
+    .topic-card p { color: var(--muted); margin-bottom: 10px; line-height: 1.7; }
+    .topic-card code { display: block; background: #0d1117; padding: 14px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12.5px; color: #a5f3fc; white-space: pre; overflow-x: auto; margin: 10px 0; }
+    .hint  { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 10px 14px; margin-top: 10px; font-size: 13px; color: var(--warning); }
+    .fun   { background: rgba(16,185,129,0.1);  border: 1px solid rgba(16,185,129,0.3);  border-radius: 8px; padding: 10px 14px; margin-top: 10px; font-size: 13px; color: var(--success); }
+    .content-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+    .progress { font-size: 13px; color: var(--muted); }
+
+    /* CHARTS */
+    .charts-panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 22px; }
+    .charts-panel h3 { margin-bottom: 18px; }
+    .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .chart-box { background: var(--bg); border-radius: 10px; padding: 14px; height: 210px; }
+
+    @media (max-width: 700px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { display: none; }
+      .chart-grid { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar">
-    <div class="nav-brand">🧠 EduSense</div>
-    <div class="nav-links">
-      <span id="welcomeUser">Welcome, Student</span>
-      <a href="admin.html">Admin</a>
-      <button class="btn-logout" onclick="logout()">Logout</button>
-    </div>
-  </nav>
 
-  <div class="dashboard-container">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <h3>Subjects</h3>
-      <ul class="subject-list">
-        <li class="active" onclick="loadSubject('python')">🐍 Python Basics</li>
-        <li onclick="loadSubject('ml')">🤖 Machine Learning</li>
-        <li onclick="loadSubject('web')">🌐 Web Development</li>
-        <li onclick="loadSubject('dsa')">📊 Data Structures</li>
-        <li onclick="loadSubject('dbms')">🗄️ DBMS</li>
-      </ul>
-
-      <div class="emotion-status">
-        <h4>Current Emotion</h4>
-        <div id="emotionBadge" class="emotion-badge neutral">😐 Neutral</div>
-        <div class="emotion-confidence">
-          Confidence: <span id="emotionConfidence">--</span>
-        </div>
-      </div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="main-content">
-      <!-- Webcam + Emotion Panel -->
-      <div class="webcam-panel">
-        <div class="webcam-wrapper">
-          <video id="webcam" autoplay playsinline></video>
-          <canvas id="overlay" style="display:none;"></canvas>
-          <div id="webcamPlaceholder" class="webcam-placeholder">
-            📷 Camera Off
-          </div>
-        </div>
-        <div class="webcam-controls">
-          <button id="startCamBtn" class="btn-primary" onclick="startWebcam()">Start Camera</button>
-          <button id="stopCamBtn" class="btn-secondary" onclick="stopWebcam()" style="display:none;">Stop Camera</button>
-          <button class="btn-accent" onclick="captureAndDetect()">Detect Emotion</button>
-        </div>
-        <div id="detectionStatus" class="detection-status">Ready to detect...</div>
-      </div>
-
-      <!-- Learning Content -->
-      <div class="content-panel">
-        <div class="content-header">
-          <h2 id="subjectTitle">Python Basics</h2>
-          <div class="content-mode-badge" id="contentMode">📘 Standard Mode</div>
-        </div>
-
-        <div id="learningContent" class="learning-content">
-          <!-- Content injected dynamically -->
-        </div>
-
-        <div class="content-navigation">
-          <button class="btn-secondary" onclick="prevTopic()">← Previous</button>
-          <span id="topicProgress">Topic 1 of 5</span>
-          <button class="btn-primary" onclick="nextTopic()">Next →</button>
-        </div>
-      </div>
-
-      <!-- Analytics Charts -->
-      <div class="analytics-panel">
-        <h3>📊 Session Analytics</h3>
-        <div class="chart-grid">
-          <div class="chart-box">
-            <canvas id="emotionChart"></canvas>
-          </div>
-          <div class="chart-box">
-            <canvas id="engagementChart"></canvas>
-          </div>
-        </div>
-      </div>
-    </main>
+<nav>
+  <div class="nav-brand">🧠 EduSense</div>
+  <div class="nav-right">
+    <span id="welcomeMsg">Welcome, Student</span>
+    <a href="admin.html" style="color:var(--muted);font-size:14px;text-decoration:none;">Admin</a>
+    <button class="btn-logout" onclick="logout()">Logout</button>
   </div>
+</nav>
 
-  <script src="js/webcam.js"></script>
-  <script src="js/content.js"></script>
-  <script src="js/charts.js"></script>
-  <script src="js/dashboard.js"></script>
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside>
+    <h3>Subjects</h3>
+    <ul class="subj-list" id="subjList">
+      <li class="active" onclick="switchSubject(this,'python')">🐍 Python Basics</li>
+      <li onclick="switchSubject(this,'ml')">🤖 Machine Learning</li>
+      <li onclick="switchSubject(this,'web')">🌐 Web Development</li>
+      <li onclick="switchSubject(this,'dsa')">📊 Data Structures</li>
+      <li onclick="switchSubject(this,'dbms')">🗄️ DBMS</li>
+    </ul>
+
+    <div class="emo-box">
+      <h4>Current Emotion</h4>
+      <div class="emo-badge" id="emoBadge">😐 Neutral</div><br/>
+      <span class="emo-conf">Confidence: <span id="emoConf">--</span></span>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- WEBCAM -->
+    <div class="cam-panel">
+      <div class="cam-wrap">
+        <video id="webcam" autoplay playsinline muted></video>
+        <div class="cam-placeholder" id="camPlaceholder">
+          <span>📷</span>
+          Camera Off
+        </div>
+      </div>
+      <div class="cam-right">
+        <h3>Emotion Detection</h3>
+        <div class="cam-btns">
+          <button class="btn btn-primary" id="startBtn" onclick="startCam()">▶ Start Camera</button>
+          <button class="btn btn-danger"  id="stopBtn"  onclick="stopCam()" style="display:none;">⏹ Stop</button>
+          <button class="btn btn-accent"  onclick="detectEmotion()">🔍 Detect Emotion</button>
+        </div>
+        <div class="cam-status" id="camStatus">Click "Start Camera" to begin.</div>
+        <p class="cam-note">⚠️ Make sure you are on <strong>https://</strong> (GitHub Pages) and allow camera when browser asks.<br/>Auto-detects every 15 seconds once camera is on.</p>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content-panel">
+      <div class="content-header">
+        <h2 id="subjectTitle">🐍 Python Basics</h2>
+        <div class="mode-badge" id="modeBadge">📘 Standard Mode</div>
+      </div>
+      <div id="learningContent"></div>
+      <div class="content-nav">
+        <button class="btn btn-secondary" onclick="prevTopic()">← Previous</button>
+        <span class="progress" id="topicProgress">Topic 1 of 2</span>
+        <button class="btn btn-primary" onclick="nextTopic()">Next →</button>
+      </div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="charts-panel">
+      <h3>📊 Session Analytics</h3>
+      <div class="chart-grid">
+        <div class="chart-box"><canvas id="emoChart"></canvas></div>
+        <div class="chart-box"><canvas id="engChart"></canvas></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── USER ──────────────────────────────────────────────────────────────────────
+const user = JSON.parse(localStorage.getItem('current_user') || '{"name":"Student"}');
+document.getElementById('welcomeMsg').textContent = '👋 ' + user.name;
+function logout() { localStorage.removeItem('current_user'); window.location.href = 'index.html'; }
+
+// ── CONTENT DATA ──────────────────────────────────────────────────────────────
+const content = {
+  python: {
+    title: '🐍 Python Basics',
+    topics: [
+      {
+        title: 'Variables & Data Types',
+        standard:  `<div class="topic-card"><h3>Variables & Data Types</h3><p>A variable stores data. Python supports integers, floats, strings, and booleans.</p><code>name = "Alice"\nage = 20\ngpa = 8.5\nis_student = True\nprint(name, age)</code><p>Python is dynamically typed — no need to declare the type explicitly.</p></div>`,
+        confused:  `<div class="topic-card"><h3>🔍 Variables — Super Simple</h3><p>Think of a variable like a <strong>labelled box</strong>. You put something in it and give it a name.</p><code># Box named "name" holds "Alice"\nname = "Alice"\n\n# Box named "age" holds 20\nage = 20\nprint(name, age)</code><div class="hint">💡 The = sign means "store this value", NOT "equals" like in maths!</div></div>`,
+        bored:     `<div class="topic-card"><h3>⚡ Challenge: Predict the Output!</h3><p>Can you figure out what prints?</p><code>x = 5\ny = x * 2\nx = x + 1\nprint(x, y)</code><div class="fun">🎯 Answer: 6 10 — did you get it right?</div><div class="fun">🐍 Fun Fact: Python was named after Monty Python, not the snake!</div></div>`,
+        focused:   `<div class="topic-card"><h3>🎯 Deep Dive: Python's Type System</h3><p>Python uses dynamic typing. Types are resolved at runtime, not compile time.</p><code>x = 5           # int\nx = "hello"     # now str — same variable!\nx = [1, 2, 3]   # now list\nprint(type(x))  # &lt;class 'list'&gt;</code><p>Use <code>type()</code> and <code>isinstance()</code> for type-safe code. Python 3.10+ has match-case for type dispatching.</p></div>`
+      },
+      {
+        title: 'Loops & Control Flow',
+        standard:  `<div class="topic-card"><h3>Loops & Control Flow</h3><p>Use <strong>for</strong> and <strong>while</strong> loops to repeat actions. Use <strong>if/elif/else</strong> for decisions.</p><code>for i in range(5):\n    print(i)        # 0 1 2 3 4\n\nmarks = 75\nif marks >= 90:\n    print("A Grade")\nelif marks >= 75:\n    print("B Grade")\nelse:\n    print("C Grade")</code></div>`,
+        confused:  `<div class="topic-card"><h3>🔍 Loops Made Easy</h3><p>A loop is like telling someone: "Do this 5 times."</p><code># Print hello 3 times\nfor i in range(3):\n    print("Hello!")</code><div class="hint">💡 range(3) gives: 0, 1, 2 — it starts from 0 not 1!</div></div>`,
+        bored:     `<div class="topic-card"><h3>⚡ FizzBuzz Challenge</h3><code>for i in range(1, 21):\n    if i % 15 == 0:\n        print("FizzBuzz")\n    elif i % 3 == 0:\n        print("Fizz")\n    elif i % 5 == 0:\n        print("Buzz")\n    else:\n        print(i)</code><div class="fun">🎮 FizzBuzz is the most famous interview question. You just solved it!</div></div>`,
+        focused:   `<div class="topic-card"><h3>🎯 List Comprehensions & Generators</h3><code># List comprehension\nsquares = [x**2 for x in range(10) if x % 2 == 0]\n\n# Generator (memory efficient)\ngen = (x**2 for x in range(10))\nprint(next(gen))  # 0\nprint(next(gen))  # 1</code><p>Generators are lazy — they compute values one at a time, saving memory for large datasets.</p></div>`
+      }
+    ]
+  },
+  ml: {
+    title: '🤖 Machine Learning',
+    topics: [
+      {
+        title: 'What is ML?',
+        standard:  `<div class="topic-card"><h3>What is Machine Learning?</h3><p>ML is a subset of AI where systems learn patterns from data to make predictions — without being explicitly programmed for each case.</p><code># Three types of ML:\n# 1. Supervised   — learns from labelled data\n# 2. Unsupervised — finds patterns in unlabelled data\n# 3. Reinforcement — learns by trial and reward</code></div>`,
+        confused:  `<div class="topic-card"><h3>🔍 ML in Plain English</h3><p>You show a child 100 photos of cats and dogs with labels. Now they can identify new ones. That's exactly what ML does — but with maths!</p><div class="hint">💡 The model learns from examples (training data) and applies the pattern to new data.</div></div>`,
+        bored:     `<div class="topic-card"><h3>⚡ ML in 6 Lines of Python</h3><code>from sklearn.linear_model import LinearRegression\nimport numpy as np\nX = np.array([[1],[2],[3],[4]])\ny = np.array([2, 4, 6, 8])\nmodel = LinearRegression().fit(X, y)\nprint(model.predict([[5]]))  # Output: [10.]</code><div class="fun">🤯 It learned y = 2x on its own. That's machine learning!</div></div>`,
+        focused:   `<div class="topic-card"><h3>🎯 Bias-Variance Tradeoff</h3><p>High bias = underfitting (model too simple, misses patterns). High variance = overfitting (model memorises training data, fails on new data).</p><p>Solution: cross-validation + regularization (L1 Lasso / L2 Ridge) to find the sweet spot.</p></div>`
+      },
+      {
+        title: 'Neural Networks',
+        standard:  `<div class="topic-card"><h3>Neural Networks</h3><p>A neural network is a series of layers of nodes (neurons) that transform input data into predictions.</p><code>Input Layer → Hidden Layers → Output Layer\n\n# Each neuron: output = activation(weights · inputs + bias)</code></div>`,
+        confused:  `<div class="topic-card"><h3>🔍 Neural Networks — Like the Brain</h3><p>Your brain has billions of neurons connected together. A neural network copies this idea with maths. Each "neuron" takes a number in, does a calculation, and passes a number out.</p><div class="hint">💡 More layers = learns more complex patterns (that's what "deep" in Deep Learning means).</div></div>`,
+        bored:     `<div class="topic-card"><h3>⚡ Build a Neural Net in Keras</h3><code>from tensorflow.keras.models import Sequential\nfrom tensorflow.keras.layers import Dense\n\nmodel = Sequential([\n    Dense(64, activation='relu', input_shape=(10,)),\n    Dense(32, activation='relu'),\n    Dense(1,  activation='sigmoid')\n])\nmodel.compile(optimizer='adam', loss='binary_crossentropy')</code></div>`,
+        focused:   `<div class="topic-card"><h3>🎯 Backpropagation</h3><p>Backpropagation uses the chain rule of calculus to compute gradients. The optimizer (e.g. Adam) adjusts weights in the direction that minimises loss. Learning rate controls step size — too high = overshooting, too low = slow convergence.</p></div>`
+      }
+    ]
+  },
+  web: {
+    title: '🌐 Web Development',
+    topics: [
+      { title: 'HTML Basics', standard: `<div class="topic-card"><h3>HTML Basics</h3><p>HTML (HyperText Markup Language) is the structure of every webpage.</p><code>&lt;!DOCTYPE html&gt;\n&lt;html&gt;\n  &lt;head&gt;&lt;title&gt;My Page&lt;/title&gt;&lt;/head&gt;\n  &lt;body&gt;\n    &lt;h1&gt;Hello World!&lt;/h1&gt;\n    &lt;p&gt;My first webpage.&lt;/p&gt;\n  &lt;/body&gt;\n&lt;/html&gt;</code></div>`, confused: `<div class="topic-card"><h3>🔍 HTML is Like a Skeleton</h3><p>HTML gives a webpage its structure — like a skeleton gives your body shape. CSS is the skin/clothes (styling), JavaScript is the muscles (behaviour).</p><div class="hint">💡 Every HTML tag has an opening &lt;tag&gt; and closing &lt;/tag&gt;.</div></div>`, bored: `<div class="topic-card"><h3>⚡ Build a Card in HTML+CSS</h3><code>&lt;div style="background:#1e293b;padding:20px;border-radius:10px;color:white;"&gt;\n  &lt;h2&gt;My Card&lt;/h2&gt;\n  &lt;p&gt;This is a styled card!&lt;/p&gt;\n&lt;/div&gt;</code><div class="fun">🎨 Paste this in any HTML file and open in browser!</div></div>`, focused: `<div class="topic-card"><h3>🎯 Semantic HTML & Accessibility</h3><p>Use semantic tags: &lt;header&gt;, &lt;main&gt;, &lt;article&gt;, &lt;section&gt;, &lt;footer&gt; instead of generic &lt;div&gt;. This improves SEO, screen-reader accessibility, and code readability.</p></div>` },
+      { title: 'CSS Styling',   standard: `<div class="topic-card"><h3>CSS Styling</h3><p>CSS controls how HTML elements look.</p><code>body {\n  background: #0f172a;\n  color: white;\n  font-family: sans-serif;\n}\nh1 { color: #4f46e5; font-size: 32px; }</code></div>`, confused: `<div class="topic-card"><h3>🔍 CSS = Decoration</h3><p>If HTML is the skeleton, CSS is the clothes. You select an element and tell it how to look.</p><div class="hint">💡 selector { property: value; } — that's all CSS is!</div></div>`, bored: `<div class="topic-card"><h3>⚡ CSS Flexbox Challenge</h3><code>.container {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  gap: 20px;\n  flex-wrap: wrap;\n}</code><div class="fun">🎯 Flexbox is used in almost every modern website. Master this!</div></div>`, focused: `<div class="topic-card"><h3>🎯 CSS Grid vs Flexbox</h3><p>Flexbox = 1D layout (row OR column). Grid = 2D layout (rows AND columns). Use Flexbox for nav bars and button groups. Use Grid for page layouts and card grids. CSS custom properties (--variables) enable dynamic theming.</p></div>` }
+    ]
+  },
+  dsa: {
+    title: '📊 Data Structures',
+    topics: [
+      { title: 'Arrays & Lists', standard: `<div class="topic-card"><h3>Arrays & Lists</h3><p>An array stores multiple values in one variable. In Python, we use lists.</p><code>nums = [10, 20, 30, 40, 50]\nprint(nums[0])   # 10 (index starts at 0)\nprint(nums[-1])  # 50 (last element)\nnums.append(60)  # add to end</code></div>`, confused: `<div class="topic-card"><h3>🔍 Lists = A Row of Boxes</h3><p>Imagine a row of numbered boxes. Each box holds one value. The first box is number 0 (not 1!).</p><code>fruits = ["apple", "banana", "mango"]\nprint(fruits[0])  # apple\nprint(fruits[1])  # banana</code><div class="hint">💡 Index starts at 0 — this trips up every beginner!</div></div>`, bored: `<div class="topic-card"><h3>⚡ Two Sum Problem</h3><code># Find two numbers that add to target\ndef two_sum(nums, target):\n    seen = {}\n    for i, n in enumerate(nums):\n        if target - n in seen:\n            return [seen[target-n], i]\n        seen[n] = i\n\nprint(two_sum([2,7,11,15], 9))  # [0,1]</code><div class="fun">🎯 This is a classic LeetCode interview question!</div></div>`, focused: `<div class="topic-card"><h3>🎯 Time Complexity of List Operations</h3><code># O(1) — constant time\nnums[-1]        # access by index\nnums.append(x)  # add to end\n\n# O(n) — linear time\nnums.insert(0, x)  # insert at front\nx in nums          # search\nnums.remove(x)     # remove by value</code></div>` },
+      { title: 'Stacks & Queues', standard: `<div class="topic-card"><h3>Stacks & Queues</h3><p>Stack = Last In First Out (LIFO). Queue = First In First Out (FIFO).</p><code>stack = []\nstack.append(1)  # push\nstack.append(2)\nstack.pop()      # 2 (last in, first out)\n\nfrom collections import deque\nq = deque()\nq.append(1); q.append(2)\nq.popleft()      # 1 (first in, first out)</code></div>`, confused: `<div class="topic-card"><h3>🔍 Stack = Plates, Queue = Queue</h3><p>Stack: like a pile of plates — you add and remove from the top. Queue: like a line at a shop — first person in is first served.</p><div class="hint">💡 Stack = append + pop. Queue = append + popleft (use deque for efficiency).</div></div>`, bored: `<div class="topic-card"><h3>⚡ Valid Parentheses Problem</h3><code>def is_valid(s):\n    stack = []\n    pairs = {')':'(', ']':'[', '}':'{'}\n    for c in s:\n        if c in '([{':\n            stack.append(c)\n        elif not stack or stack[-1] != pairs[c]:\n            return False\n        else:\n            stack.pop()\n    return not stack\n\nprint(is_valid("()[]{}"))  # True</code></div>`, focused: `<div class="topic-card"><h3>🎯 Monotonic Stack Pattern</h3><p>A monotonic stack maintains elements in increasing or decreasing order. Used in: Next Greater Element, Largest Rectangle in Histogram, Trapping Rain Water — all O(n) solutions using this pattern.</p></div>` }
+    ]
+  },
+  dbms: {
+    title: '🗄️ DBMS',
+    topics: [
+      { title: 'SQL Basics', standard: `<div class="topic-card"><h3>SQL Basics</h3><p>SQL (Structured Query Language) is used to interact with relational databases.</p><code>-- Create table\nCREATE TABLE students (\n  id    INT PRIMARY KEY AUTO_INCREMENT,\n  name  VARCHAR(100),\n  marks INT\n);\n\n-- Insert\nINSERT INTO students (name, marks) VALUES ('Alice', 92);\n\n-- Query\nSELECT * FROM students WHERE marks > 80;</code></div>`, confused: `<div class="topic-card"><h3>🔍 SQL — Talking to a Database</h3><p>A database is like a spreadsheet. SQL is how you ask questions and give instructions to it.</p><code>-- "Show me all students"\nSELECT * FROM students;\n\n-- "Show me students who passed"\nSELECT name FROM students WHERE marks >= 50;</code><div class="hint">💡 SELECT = what you want. FROM = which table. WHERE = the condition.</div></div>`, bored: `<div class="topic-card"><h3>⚡ SQL JOIN Challenge</h3><code>-- Students and their courses\nSELECT s.name, c.course_name\nFROM students s\nINNER JOIN enrollments e ON s.id = e.student_id\nINNER JOIN courses c     ON e.course_id = c.id\nWHERE s.marks > 75\nORDER BY s.name;</code><div class="fun">🎯 JOINs are the most tested SQL topic in interviews!</div></div>`, focused: `<div class="topic-card"><h3>🎯 Indexing & Query Optimisation</h3><p>Without an index, MySQL does a full table scan O(n). A B-tree index reduces lookups to O(log n). Use EXPLAIN SELECT ... to see the query execution plan. Composite indexes follow left-prefix rule — order matters.</p></div>` },
+      { title: 'Normalization', standard: `<div class="topic-card"><h3>Database Normalization</h3><p>Normalization organizes data to reduce redundancy.</p><code>-- 1NF: Atomic values, no repeating groups\n-- 2NF: No partial dependency on composite key\n-- 3NF: No transitive dependency\n-- BCNF: Every determinant is a candidate key</code></div>`, confused: `<div class="topic-card"><h3>🔍 Why Normalize?</h3><p>Imagine storing a student's address in every row of exam results. If they move, you update 100 rows! Normalization splits data into separate tables so you update in one place only.</p><div class="hint">💡 The golden rule: each piece of data stored in exactly one place.</div></div>`, bored: `<div class="topic-card"><h3>⚡ Spot the Anomaly</h3><p>This table has a problem — find it!</p><code>StudentID | Name  | Course    | Teacher\n1         | Alice | Python    | Dr. Roy\n2         | Bob   | Python    | Dr. Roy\n3         | Alice | ML        | Dr. Sen</code><div class="fun">🎯 Answer: Teacher depends on Course, not StudentID — this is a transitive dependency (3NF violation)!</div></div>`, focused: `<div class="topic-card"><h3>🎯 ACID Properties</h3><p>Atomicity: transaction is all-or-nothing. Consistency: DB moves from one valid state to another. Isolation: concurrent transactions don't interfere. Durability: committed data survives crashes. InnoDB (MySQL default) supports full ACID compliance.</p></div>` }
+    ]
+  }
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let currentSubject = 'python';
+let currentTopic   = 0;
+let currentMode    = 'standard';
+let camStream      = null;
+let autoTimer      = null;
+
+// ── SUBJECT SWITCH ────────────────────────────────────────────────────────────
+function switchSubject(el, key) {
+  document.querySelectorAll('.subj-list li').forEach(li => li.classList.remove('active'));
+  el.classList.add('active');
+  currentSubject = key;
+  currentTopic   = 0;
+  document.getElementById('subjectTitle').textContent = content[key].title;
+  renderTopic();
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function renderTopic() {
+  const subj   = content[currentSubject];
+  const topic  = subj.topics[currentTopic];
+  const html   = topic[currentMode] || topic['standard'];
+  document.getElementById('learningContent').innerHTML = html;
+  document.getElementById('topicProgress').textContent =
+    `Topic ${currentTopic + 1} of ${subj.topics.length}`;
+  const modeLabels = { standard:'📘 Standard Mode', focused:'🎯 Advanced Mode', confused:'🔍 Simplified Mode', bored:'⚡ Challenge Mode' };
+  document.getElementById('modeBadge').textContent = modeLabels[currentMode] || '📘 Standard Mode';
+}
+
+function nextTopic() {
+  const topics = content[currentSubject].topics;
+  if (currentTopic < topics.length - 1) { currentTopic++; renderTopic(); }
+}
+function prevTopic() {
+  if (currentTopic > 0) { currentTopic--; renderTopic(); }
+}
+
+// ── WEBCAM ────────────────────────────────────────────────────────────────────
+async function startCam() {
+  const status = document.getElementById('camStatus');
+
+  // Check if browser supports getUserMedia
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    status.textContent = '❌ Your browser does not support camera access. Use Chrome on https://';
+    return;
+  }
+
+  // Check if on https (required for camera)
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+    status.textContent = '❌ Camera requires HTTPS. Open via GitHub Pages link (https://), not file://';
+    return;
+  }
+
+  status.textContent = '⏳ Requesting camera permission...';
+
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
+      audio: false
+    });
+
+    const video = document.getElementById('webcam');
+    video.srcObject = camStream;
+    video.style.display = 'block';
+    document.getElementById('camPlaceholder').style.display = 'none';
+    document.getElementById('startBtn').style.display = 'none';
+    document.getElementById('stopBtn').style.display  = 'inline-block';
+    status.textContent = '✅ Camera active! Auto-detecting every 15 seconds.';
+
+    // Auto detect every 15 seconds
+    autoTimer = setInterval(detectEmotion, 15000);
+
+  } catch (err) {
+    console.error('Camera error:', err);
+    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+      status.textContent = '❌ Camera permission denied. Click the camera icon in your browser address bar and allow access, then try again.';
+    } else if (err.name === 'NotFoundError') {
+      status.textContent = '❌ No camera found on this device.';
+    } else if (err.name === 'NotReadableError') {
+      status.textContent = '❌ Camera is being used by another app. Close other apps and try again.';
+    } else {
+      status.textContent = '❌ Camera error: ' + err.message + '. Try refreshing the page.';
+    }
+  }
+}
+
+function stopCam() {
+  if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+  clearInterval(autoTimer);
+  const video = document.getElementById('webcam');
+  video.srcObject = null;
+  video.style.display = 'none';
+  document.getElementById('camPlaceholder').style.display = 'flex';
+  document.getElementById('startBtn').style.display = 'inline-block';
+  document.getElementById('stopBtn').style.display  = 'none';
+  document.getElementById('camStatus').textContent  = 'Camera stopped.';
+}
+
+// ── EMOTION DETECTION ─────────────────────────────────────────────────────────
+function detectEmotion() {
+  const video  = document.getElementById('webcam');
+  const status = document.getElementById('camStatus');
+
+  if (!camStream) {
+    // Simulate in demo mode
+    simulateEmotion();
+    return;
+  }
+
+  if (video.readyState < 2) {
+    status.textContent = '⏳ Camera warming up... try again in a second.';
+    return;
+  }
+
+  status.textContent = '🔍 Analyzing your expression...';
+
+  // Capture frame
+  const canvas = document.createElement('canvas');
+  canvas.width  = video.videoWidth  || 320;
+  canvas.height = video.videoHeight || 240;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  const imageData = canvas.toDataURL('image/jpeg', 0.8);
+
+  // Try ML API, fallback to simulation
+  fetch('http://localhost:8000/detect-emotion', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image: imageData }),
+    signal: AbortSignal.timeout(4000)
+  })
+  .then(r => r.json())
+  .then(data => applyEmotion(data.emotion, data.confidence, false))
+  .catch(() => simulateEmotion());
+}
+
+function simulateEmotion() {
+  const emotions = ['happy', 'confused', 'bored', 'focused', 'neutral'];
+  const emotion  = emotions[Math.floor(Math.random() * emotions.length)];
+  const conf     = (Math.random() * 25 + 70).toFixed(1);
+  applyEmotion(emotion, conf, true);
+}
+
+function applyEmotion(emotion, confidence, isDemo) {
+  const emojiMap = { happy:'😊', confused:'😕', bored:'😴', focused:'🎯', neutral:'😐', sad:'😢', angry:'😠' };
+  const emoji    = emojiMap[emotion] || '😐';
+
+  document.getElementById('emoBadge').textContent  = `${emoji} ${cap(emotion)}`;
+  document.getElementById('emoBadge').className    = `emo-badge ${emotion}`;
+  document.getElementById('emoConf').textContent   = confidence + '%';
+  document.getElementById('camStatus').textContent =
+    `✅ ${isDemo ? '[Demo] ' : ''}Detected: ${cap(emotion)} — ${confidence}% confidence`;
+
+  // Adapt content
+  const modeMap = { happy:'standard', focused:'focused', confused:'confused', bored:'bored', neutral:'standard', sad:'confused', angry:'confused' };
+  currentMode = modeMap[emotion] || 'standard';
+  renderTopic();
+
+  // Log to charts
+  logEmotion(emotion);
+}
+
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+// ── CHARTS ────────────────────────────────────────────────────────────────────
+const emoCount = { happy:0, confused:0, bored:0, focused:0, neutral:0 };
+let emoChart, engChart;
+
+window.addEventListener('load', () => {
+  renderTopic();
+
+  emoChart = new Chart(document.getElementById('emoChart').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Happy','Confused','Bored','Focused','Neutral'],
+      datasets: [{ data: [0,0,0,0,1], backgroundColor: ['#10b981','#f59e0b','#ef4444','#4f46e5','#64748b'], borderWidth: 0 }]
+    },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins: { legend:{ position:'bottom', labels:{ color:'#94a3b8', font:{size:11} }},
+                 title:{ display:true, text:'Emotion Distribution', color:'#e2e8f0' }}}
+  });
+
+  engChart = new Chart(document.getElementById('engChart').getContext('2d'), {
+    type: 'line',
+    data: { labels:[], datasets:[{ label:'Engagement Score', data:[], borderColor:'#06b6d4',
+            backgroundColor:'rgba(6,182,212,0.1)', fill:true, tension:0.4, pointBackgroundColor:'#06b6d4' }]},
+    options: { responsive:true, maintainAspectRatio:false,
+      scales: { y:{ min:0, max:100, ticks:{color:'#94a3b8'}, grid:{color:'#1e293b'} },
+                x:{ ticks:{color:'#94a3b8'}, grid:{color:'#1e293b'} }},
+      plugins: { legend:{ labels:{color:'#94a3b8'}}, title:{ display:true, text:'Engagement Over Time', color:'#e2e8f0' }}}
+  });
+});
+
+function logEmotion(emotion) {
+  if (emoCount[emotion] !== undefined) emoCount[emotion]++;
+  emoChart.data.datasets[0].data = [emoCount.happy, emoCount.confused, emoCount.bored, emoCount.focused, emoCount.neutral];
+  emoChart.update();
+
+  const scoreMap = { happy:85, focused:95, neutral:60, confused:45, bored:20 };
+  const time = new Date().toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+  engChart.data.labels.push(time);
+  engChart.data.datasets[0].data.push(scoreMap[emotion] || 60);
+  if (engChart.data.labels.length > 10) { engChart.data.labels.shift(); engChart.data.datasets[0].data.shift(); }
+  engChart.update();
+}
+</script>
 </body>
 </html>
