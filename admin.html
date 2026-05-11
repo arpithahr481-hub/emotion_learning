@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel - EduSense</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">🧠 EduSense — Admin</div>
+    <div class="nav-links">
+      <a href="dashboard.html">← Back to Dashboard</a>
+      <button class="btn-logout" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="admin-container">
+    <div class="admin-header">
+      <h1>📊 Admin Panel</h1>
+      <p>Overview of all students, sessions, and emotion analytics.</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value">128</div><div class="stat-label">Total Students</div></div>
+      <div class="stat-card"><div class="stat-icon">📚</div><div class="stat-value">342</div><div class="stat-label">Sessions Today</div></div>
+      <div class="stat-card"><div class="stat-icon">🎯</div><div class="stat-value">72%</div><div class="stat-label">Avg Engagement</div></div>
+      <div class="stat-card"><div class="stat-icon">😕</div><div class="stat-value">18%</div><div class="stat-label">Confusion Rate</div></div>
+    </div>
+
+    <div class="chart-grid" style="margin-bottom:24px;">
+      <div class="chart-box" style="height:280px; background:#1e293b; border-radius:12px; padding:16px;">
+        <canvas id="adminEmotionChart"></canvas>
+      </div>
+      <div class="chart-box" style="height:280px; background:#1e293b; border-radius:12px; padding:16px;">
+        <canvas id="adminEngagementChart"></canvas>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <h3>👥 Student Sessions</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Subject</th>
+            <th>Dominant Emotion</th>
+            <th>Engagement</th>
+            <th>Duration</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Arpitha K</td><td>Python Basics</td><td>😊 Happy</td><td>88%</td><td>45 min</td><td>Today</td></tr>
+          <tr><td>Ravi M</td><td>ML Concepts</td><td>😕 Confused</td><td>52%</td><td>30 min</td><td>Today</td></tr>
+          <tr><td>Sneha P</td><td>Web Dev</td><td>🎯 Focused</td><td>92%</td><td>60 min</td><td>Today</td></tr>
+          <tr><td>Kiran B</td><td>DSA</td><td>😴 Bored</td><td>34%</td><td>20 min</td><td>Today</td></tr>
+          <tr><td>Divya R</td><td>DBMS</td><td>😊 Happy</td><td>79%</td><td>50 min</td><td>Yesterday</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // Admin Emotion Chart
+    new Chart(document.getElementById('adminEmotionChart').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: ['Happy', 'Focused', 'Neutral', 'Confused', 'Bored'],
+        datasets: [{ label: 'Emotion Frequency', data: [42, 35, 25, 18, 8],
+          backgroundColor: ['#10b981','#4f46e5','#64748b','#f59e0b','#ef4444'], borderRadius: 6 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, title: { display: true, text: 'Emotion Distribution (All Students)', color: '#e2e8f0' }},
+        scales: { x: { ticks: { color: '#94a3b8' }, grid: { display: false }}, y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' }}}
+      }
+    });
+
+    // Admin Engagement Chart
+    new Chart(document.getElementById('adminEngagementChart').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+        datasets: [{ label: 'Avg Engagement %', data: [65, 72, 68, 80, 76, 85, 72],
+          borderColor: '#06b6d4', backgroundColor: 'rgba(6,182,212,0.1)', fill: true, tension: 0.4 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#94a3b8' }}, title: { display: true, text: 'Weekly Engagement Trend', color: '#e2e8f0' }},
+        scales: { x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' }}, y: { min: 0, max: 100, ticks: { color: '#94a3b8' }, grid: { color: '#334155' }}}
+      }
+    });
+
+    function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+  </script>
+</body>
+</html>

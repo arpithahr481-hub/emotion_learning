@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Emotion-Based Learning</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="logo">
+        <span>🧠</span>
+        <h1>EduSense</h1>
+        <p>Smart Emotion-Based Learning</p>
+      </div>
+
+      <!-- Login Form -->
+      <div id="loginForm">
+        <h2>Welcome Back</h2>
+        <div class="form-group">
+          <input type="email" id="loginEmail" placeholder="Email Address" required />
+        </div>
+        <div class="form-group">
+          <input type="password" id="loginPassword" placeholder="Password" required />
+        </div>
+        <button class="btn-primary" onclick="handleLogin()">Login</button>
+        <p class="switch-form">Don't have an account? <a href="#" onclick="toggleForm()">Register</a></p>
+      </div>
+
+      <!-- Register Form -->
+      <div id="registerForm" style="display:none;">
+        <h2>Create Account</h2>
+        <div class="form-group">
+          <input type="text" id="regName" placeholder="Full Name" required />
+        </div>
+        <div class="form-group">
+          <input type="email" id="regEmail" placeholder="Email Address" required />
+        </div>
+        <div class="form-group">
+          <input type="password" id="regPassword" placeholder="Password" required />
+        </div>
+        <button class="btn-primary" onclick="handleRegister()">Register</button>
+        <p class="switch-form">Already have an account? <a href="#" onclick="toggleForm()">Login</a></p>
+      </div>
+
+      <div id="authMessage" class="message"></div>
+    </div>
+  </div>
+
+  <script src="js/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Learning Dashboard - EduSense</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-brand">🧠 EduSense</div>
+    <div class="nav-links">
+      <span id="welcomeUser">Welcome, Student</span>
+      <a href="admin.html">Admin</a>
+      <button class="btn-logout" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h3>Subjects</h3>
+      <ul class="subject-list">
+        <li class="active" onclick="loadSubject('python')">🐍 Python Basics</li>
+        <li onclick="loadSubject('ml')">🤖 Machine Learning</li>
+        <li onclick="loadSubject('web')">🌐 Web Development</li>
+        <li onclick="loadSubject('dsa')">📊 Data Structures</li>
+        <li onclick="loadSubject('dbms')">🗄️ DBMS</li>
+      </ul>
+
+      <div class="emotion-status">
+        <h4>Current Emotion</h4>
+        <div id="emotionBadge" class="emotion-badge neutral">😐 Neutral</div>
+        <div class="emotion-confidence">
+          Confidence: <span id="emotionConfidence">--</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Webcam + Emotion Panel -->
+      <div class="webcam-panel">
+        <div class="webcam-wrapper">
+          <video id="webcam" autoplay playsinline></video>
+          <canvas id="overlay" style="display:none;"></canvas>
+          <div id="webcamPlaceholder" class="webcam-placeholder">
+            📷 Camera Off
+          </div>
+        </div>
+        <div class="webcam-controls">
+          <button id="startCamBtn" class="btn-primary" onclick="startWebcam()">Start Camera</button>
+          <button id="stopCamBtn" class="btn-secondary" onclick="stopWebcam()" style="display:none;">Stop Camera</button>
+          <button class="btn-accent" onclick="captureAndDetect()">Detect Emotion</button>
+        </div>
+        <div id="detectionStatus" class="detection-status">Ready to detect...</div>
+      </div>
+
+      <!-- Learning Content -->
+      <div class="content-panel">
+        <div class="content-header">
+          <h2 id="subjectTitle">Python Basics</h2>
+          <div class="content-mode-badge" id="contentMode">📘 Standard Mode</div>
+        </div>
+
+        <div id="learningContent" class="learning-content">
+          <!-- Content injected dynamically -->
+        </div>
+
+        <div class="content-navigation">
+          <button class="btn-secondary" onclick="prevTopic()">← Previous</button>
+          <span id="topicProgress">Topic 1 of 5</span>
+          <button class="btn-primary" onclick="nextTopic()">Next →</button>
+        </div>
+      </div>
+
+      <!-- Analytics Charts -->
+      <div class="analytics-panel">
+        <h3>📊 Session Analytics</h3>
+        <div class="chart-grid">
+          <div class="chart-box">
+            <canvas id="emotionChart"></canvas>
+          </div>
+          <div class="chart-box">
+            <canvas id="engagementChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/webcam.js"></script>
+  <script src="js/content.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
